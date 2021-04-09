@@ -74,7 +74,7 @@ def print_results(tic=12350):
 
 
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 # app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -124,59 +124,6 @@ app.layout = dbc.Container(
     fluid=True,
 )
 
-# app.layout = html.Div([
-#     html.H6("toco in the browser - like magic"),
-#     html.Div(["Input: ",
-#               dcc.Input(id='my-input', value='initial value', type='text'),
-#               dbc.Button('Submit', color="primary", id='submit-val', n_clicks=0, ),]),
-
-#     html.Br(),
-#     html.Div(id='my-output'),
-#     html.Br(),
-#     html.Div(dcc.Markdown(id='my-output2')),
-
-# ])
-
-
-# @app.callback(
-#     [Output(component_id='my-output', component_property='children'),
-#         Output(component_id='my-output2', component_property='children')],
-#     [Input("submit-val", "n_clicks"), Input(component_id='my-input', component_property='value')])
-# def update_output(n_clicks, input_value):
-#     if n_clicks is not None and n_clicks > 0:
-#         tic = get_tic_name(input_value)
-#         df, print_str = print_results(tic=tic)
-#         tbl = dash_table.DataTable(
-#             id='my-output',
-#             columns=[{"name": i, "id": i} for i in df.columns],
-#             data=df.to_dict('records'),
-#             style_table={
-#                 'width': '80%',
-#             }
-#         )
-#         return tbl,print_str
-#     else:
-#         return [None, None]
-
-# @app.callback(
-#     [Output(component_id='my-output3', component_property='children'),
-#         Output(component_id='my-output4', component_property='children')],
-#     [Input("submit-val2", "n_clicks"), Input(component_id='my-input2', component_property='value')])
-# def update_output(n_clicks, input_value):
-#     if n_clicks is not None and n_clicks > 0:
-#         tic = input_value
-#         df, print_str = print_results(tic=tic)
-#         tbl = dash_table.DataTable(
-#             id='my-output3',
-#             columns=[{"name": i, "id": i} for i in df.columns],
-#             data=df.to_dict('records'),
-#             style_table={
-#                 'width': '80%',
-#             }
-#         )
-#         return tbl,print_str
-#     else:
-#         return [None, None]
 
 @app.callback(
     [Output(component_id='my-output-table', component_property='children'),
@@ -184,7 +131,10 @@ app.layout = dbc.Container(
     [Input("submit-val-name", "n_clicks"), Input(component_id='my-input-name', component_property='value'),
      Input("submit-val-tic", "n_clicks"), Input(component_id='my-input-tic', component_property='value')])
 def update_output(n_clicks_name, input_value_name, n_clicks_tic, input_value_tic):
-    if n_clicks_name is not None and n_clicks_name > 0:
+
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
+
+    if "submit-val-name" in changed_id:
         tic = get_tic_name(input_value_name)
         df, print_str = print_results(tic=tic)
         tbl = dash_table.DataTable(
@@ -196,7 +146,8 @@ def update_output(n_clicks_name, input_value_name, n_clicks_tic, input_value_tic
             }
         )
         return tbl,print_str
-    elif n_clicks_tic is not None and n_clicks_tic > 0:
+
+    elif "submit-val-tic" in changed_id:
         tic = input_value_tic
         df, print_str = print_results(tic=tic)
         tbl = dash_table.DataTable(
