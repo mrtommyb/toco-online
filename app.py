@@ -2,22 +2,22 @@ import dash
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 from astroquery.simbad import Simbad
 from toco.toco import Target, get_tic_name
 from astropy.coordinates import SkyCoord, get_constellation
 from astropy import units as u
 import warnings
-import re
 warnings.filterwarnings('ignore', category=UserWarning, append=True)
 
+app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
+server = app.server
 
 def print_results(tic=12350):
     print_str = ""
     target = Target(tic)
     catalogData = target.query().to_pandas()
-
 
     catalogData['ra'] = catalogData['ra'].round(5)
     catalogData['dec'] = catalogData['dec'].round(5)
@@ -30,10 +30,9 @@ def print_results(tic=12350):
     catalogData['Kmag'] = catalogData['Kmag'].round(2)
 
     output_table = catalogData[['ID', 'ra', 'dec', 'pmRA', 'pmDEC',
-                              'eclong', 'eclat', 'Tmag', 'Vmag',
-                              'Kmag', 'Teff',
-                              'rad', 'mass', 'd', ]]
-
+                                'eclong', 'eclat', 'Tmag', 'Vmag',
+                                'Kmag', 'Teff',
+                                'rad', 'mass', 'd', ]].iloc[0:1]
 
     skobj = SkyCoord(ra=catalogData['ra'] * u.degree,
                      dec=catalogData['dec'] * u.degree,
@@ -61,21 +60,22 @@ def print_results(tic=12350):
     else:
         print_str += "Target name: {}\n\n".format(
             result_table['MAIN_ID'][0])
-    print_str += "The target is in constellation {}\n\n".format(get_constellation(
-        skobj)[0])
+    print_str += "The target is in constellation {}\n\n".format(
+        get_constellation(skobj)[0])
 
     obs_sectors = target.get_obs()
     obs2, obsffi, obs20 = obs_sectors
 
-    print_str += 'FFI data at MAST for sectors:      {}\n\n'.format(str(sorted(list(set(obsffi)))).replace("[", r"\[").replace("]", r"\]"))
-    print_str += '2-min data at MAST for sectors:    {}\n\n'.format(str(sorted(list(set(obs2)))).replace("[", r"\[").replace("]", r"\]"))
-    print_str += '20-s data at MAST for sectors:     {}\n\n'.format(str(sorted(list(set(obs20)))).replace("[", r"\[").replace("]", r"\]"))
+    print_str += 'FFI data at MAST for sectors:      {}\n\n'.format(
+        str(sorted(list(set(obsffi)))).replace("[", r"\[").replace("]", r"\]"))
+    print_str += '2-min data at MAST for sectors:    {}\n\n'.format(
+        str(sorted(list(set(obs2)))).replace("[", r"\[").replace("]", r"\]"))
+    print_str += '20-s data at MAST for sectors:     {}\n\n'.format(
+        str(sorted(list(set(obs20)))).replace("[", r"\[").replace("]", r"\]"))
     return output_table, print_str
 
 
-app = dash.Dash(external_stylesheets=[dbc.themes.SPACELAB])
 
-server = app.server
 
 jumbotron = dbc.Jumbotron(
     [
@@ -90,33 +90,34 @@ jumbotron = dbc.Jumbotron(
 )
 
 name_form = dbc.Form(
+    [
+        dbc.FormGroup(
             [
-                dbc.FormGroup(
-                    [
-                        dbc.Label("Target Name:", className="mr-2"),
-                        dbc.Input(type="text", placeholder="Star Name", id="my-input-name",
-                            ),
-                    ],
-                    className="mr-3",
-                ),
-                dbc.Button("Submit", color="primary", id="submit-val-name"),
+                dbc.Label("Target Name:", className="mr-2"),
+                dbc.Input(type="text", placeholder="Star Name", id="my-input-name",
+                          ),
             ],
-            inline=True,
-        )
+            className="mr-3",
+        ),
+        dbc.Button("Submit", color="primary", id="submit-val-name"),
+    ],
+    inline=True,
+)
 
 tic_form = dbc.Form(
+    [
+        dbc.FormGroup(
             [
-                dbc.FormGroup(
-                    [
-                        dbc.Label("TIC number:", className="mr-2"),
-                        dbc.Input(type="text", placeholder="TIC Number", id="my-input-tic"),
-                    ],
-                    className="mr-3",
-                ),
-                dbc.Button("Submit", color="primary", id="submit-val-tic"),
+                dbc.Label("TIC number:", className="mr-2"),
+                dbc.Input(type="text", placeholder="TIC Number",
+                          id="my-input-tic"),
             ],
-            inline=True,
-        )
+            className="mr-3",
+        ),
+        dbc.Button("Submit", color="primary", id="submit-val-tic"),
+    ],
+    inline=True,
+)
 
 app.layout = dbc.Container(
     [
@@ -124,10 +125,11 @@ app.layout = dbc.Container(
         name_form,
         html.Br(),
         tic_form,
-    html.Br(),
-    html.Div(id='my-output-table'),
-    html.Br(),
-    html.Div(dcc.Markdown(id='my-output-text')),
+        html.Br(),
+        dbc.Spinner(id="loading-1", type="grow",
+                    children=[html.Div(id='my-output-table')]),
+        html.Br(),
+        html.Div(dcc.Markdown(id='my-output-text')),
     ],
     fluid=True,
 )
@@ -136,9 +138,12 @@ app.layout = dbc.Container(
 @app.callback(
     [Output(component_id='my-output-table', component_property='children'),
         Output(component_id='my-output-text', component_property='children')],
-    [Input("submit-val-name", "n_clicks"), Input(component_id='my-input-name', component_property='value'),
-     Input("submit-val-tic", "n_clicks"), Input(component_id='my-input-tic', component_property='value')])
-def update_output(n_clicks_name, input_value_name, n_clicks_tic, input_value_tic):
+    [Input("submit-val-name", "n_clicks"),
+     Input(component_id='my-input-name', component_property='value'),
+     Input("submit-val-tic", "n_clicks"),
+     Input(component_id='my-input-tic', component_property='value')])
+def update_output(n_clicks_name, input_value_name, n_clicks_tic,
+                  input_value_tic):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
