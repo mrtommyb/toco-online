@@ -137,7 +137,7 @@ app.layout = dbc.Container(
                     children=[html.Div(id='my-output-table')]),
         html.Br(),
         html.Div(dcc.Markdown(id='my-output-text')),
-        html.Footer(dcc.Markdown("Build by [Tom Barclay](tombarclay.com). "
+        html.Footer(dcc.Markdown("Build by [Tom Barclay](https://tombarclay.com). "
             "Checkout the code on [GitHub](https://github.com/mrtommyb/toco-online)."))
     ],
     fluid=True,
