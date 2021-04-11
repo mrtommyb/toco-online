@@ -16,7 +16,14 @@ server = app.server
 
 def print_results(tic=12350):
     print_str = ""
+    try:
+        tic = int(tic)
+    except ValueError:
+        return (None, "Not a valid TIC number")
+
     target = Target(tic)
+
+
     catalogData = target.query().to_pandas()
 
     catalogData['ra'] = catalogData['ra'].round(5)
@@ -151,27 +158,33 @@ def update_output(n_clicks_name, input_value_name, n_clicks_tic,
 
         tic = get_tic_name(input_value_name)
         df, print_str = print_results(tic=tic)
-        tbl = dash_table.DataTable(
-            id='my-output',
-            columns=[{"name": i, "id": i} for i in df.columns],
-            data=df.to_dict('records'),
-            style_table={
-                'width': '80%',
-            }
-        )
+        if df is None:
+            return None, print_str
+        else:
+            tbl = dash_table.DataTable(
+                id='my-output',
+                columns=[{"name": i, "id": i} for i in df.columns],
+                data=df.to_dict('records'),
+                style_table={
+                    'width': '80%',
+                }
+            )
         return tbl, print_str
 
     elif "submit-val-tic" in changed_id:
         tic = input_value_tic
         df, print_str = print_results(tic=tic)
-        tbl = dash_table.DataTable(
-            id='my-output',
-            columns=[{"name": i, "id": i} for i in df.columns],
-            data=df.to_dict('records'),
-            style_table={
-                'width': '80%',
-            }
-        )
+        if df is None:
+            return [None, print_str]
+        else:
+            tbl = dash_table.DataTable(
+                id='my-output',
+                columns=[{"name": i, "id": i} for i in df.columns],
+                data=df.to_dict('records'),
+                style_table={
+                    'width': '80%',
+                }
+            )
         return tbl, print_str
     else:
         return [None, None]
