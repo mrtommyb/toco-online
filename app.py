@@ -73,34 +73,38 @@ def print_results(tic=12350):
     return output_table, print_str
 
 
-
-# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
-# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(external_stylesheets=[dbc.themes.SPACELAB])
 
 server = app.server
 
-app.layout = dbc.Container(
+jumbotron = dbc.Jumbotron(
     [
-        html.H1("toco in the browser - like magic"),
-        html.H6(dcc.Markdown("Based on [toco](https://github.com/tessgi/toco), a tool for quickly finding information on TESS sources")),
-        html.Hr(),
-        dbc.Form(
+        html.H1("toco in the browser - like magic", className="display-3"),
+        html.P(dcc.Markdown(
+            "Based on [toco](https://github.com/tessgi/toco), a "
+            "tool for quickly finding information on TESS sources"),
+            className="lead",
+        ),
+        html.Hr(className="my-2"),
+    ]
+)
+
+name_form = dbc.Form(
             [
                 dbc.FormGroup(
                     [
                         dbc.Label("Target Name:", className="mr-2"),
-                        dbc.Input(type="text", placeholder="Star Name", id="my-input-name"),
+                        dbc.Input(type="text", placeholder="Star Name", id="my-input-name",
+                            ),
                     ],
                     className="mr-3",
                 ),
                 dbc.Button("Submit", color="primary", id="submit-val-name"),
             ],
             inline=True,
-        ),
-        html.Br(),
-        dbc.Form(
+        )
+
+tic_form = dbc.Form(
             [
                 dbc.FormGroup(
                     [
@@ -112,10 +116,14 @@ app.layout = dbc.Container(
                 dbc.Button("Submit", color="primary", id="submit-val-tic"),
             ],
             inline=True,
-        ),
-        # html.Div(["Input: ",
-        #       dcc.Input(id='my-input', value='initial value', type='text'),
-        #       dbc.Button('Submit', color="primary", id='submit-val', n_clicks=0, ),]),
+        )
+
+app.layout = dbc.Container(
+    [
+        jumbotron,
+        name_form,
+        html.Br(),
+        tic_form,
     html.Br(),
     html.Div(id='my-output-table'),
     html.Br(),
@@ -135,6 +143,7 @@ def update_output(n_clicks_name, input_value_name, n_clicks_tic, input_value_tic
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
 
     if "submit-val-name" in changed_id:
+
         tic = get_tic_name(input_value_name)
         df, print_str = print_results(tic=tic)
         tbl = dash_table.DataTable(
@@ -145,7 +154,7 @@ def update_output(n_clicks_name, input_value_name, n_clicks_tic, input_value_tic
                 'width': '80%',
             }
         )
-        return tbl,print_str
+        return tbl, print_str
 
     elif "submit-val-tic" in changed_id:
         tic = input_value_tic
@@ -158,7 +167,7 @@ def update_output(n_clicks_name, input_value_name, n_clicks_tic, input_value_tic
                 'width': '80%',
             }
         )
-        return tbl,print_str
+        return tbl, print_str
     else:
         return [None, None]
 
