@@ -9,10 +9,12 @@ from toco.toco import Target, get_tic_name
 from astropy.coordinates import SkyCoord, get_constellation
 from astropy import units as u
 import warnings
+from urllib.parse import urlencode
 warnings.filterwarnings('ignore', category=UserWarning, append=True)
 
 app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
 server = app.server
+
 
 def print_results(tic=12350):
     print_str = ""
@@ -22,7 +24,6 @@ def print_results(tic=12350):
         return (None, "Not a valid TIC number")
 
     target = Target(tic)
-
 
     catalogData = target.query().to_pandas()
 
@@ -65,8 +66,16 @@ def print_results(tic=12350):
         print_str += "\n\n"
         print_str += "No Simbad target resolved\n\n"
     else:
-        print_str += "Target name: {}\n\n".format(
-            result_table['MAIN_ID'][0])
+        # print_str += "Target name: {}\n\n".format(
+        #     result_table['MAIN_ID'][0])
+        # print_str += "Target name: <a href=\"{1}{2}\">{0}</a>\n\n".format(
+        #     result_table['MAIN_ID'][0],
+        #     "http://simbad.u-strasbg.fr/simbad/sim-id?",
+        #     urlencode({"Ident": result_table['MAIN_ID'][0]}))
+        print_str += "Target name: [{0}]({1}{2})\n\n".format(
+            result_table['MAIN_ID'][0],
+            "http://simbad.u-strasbg.fr/simbad/sim-id?",
+            urlencode({"Ident": result_table['MAIN_ID'][0]}))
     print_str += "The target is in constellation {}\n\n".format(
         get_constellation(skobj)[0])
 
@@ -80,8 +89,6 @@ def print_results(tic=12350):
     print_str += '20-s data at MAST for sectors:     {}\n\n'.format(
         str(sorted(list(set(obs20)))).replace("[", r"\[").replace("]", r"\]"))
     return output_table, print_str
-
-
 
 
 jumbotron = dbc.Jumbotron(
@@ -138,7 +145,7 @@ app.layout = dbc.Container(
         html.Br(),
         html.Div(dcc.Markdown(id='my-output-text')),
         html.Footer(dcc.Markdown("Build by [Tom Barclay](https://tombarclay.com). "
-            "Checkout the code on [GitHub](https://github.com/mrtommyb/toco-online)."))
+                                 "Checkout the code on [GitHub](https://github.com/mrtommyb/toco-online)."))
     ],
     fluid=True,
 )
