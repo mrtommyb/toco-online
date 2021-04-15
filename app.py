@@ -2,7 +2,7 @@ import dash
 import dash_table
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 from astroquery.simbad import Simbad
 from toco.toco import Target, get_tic_name
@@ -154,11 +154,10 @@ app.layout = dbc.Container(
 @app.callback(
     [Output(component_id='my-output-table', component_property='children'),
         Output(component_id='my-output-text', component_property='children')],
-    [Input("submit-val-name", "n_clicks"),
-     Input(component_id='my-input-name', component_property='value'),
-     Input("submit-val-tic", "n_clicks"),
-     Input(component_id='my-input-tic', component_property='value')])
-def update_output(n_clicks_name, input_value_name, n_clicks_tic,
+    [Input("submit-val-name", "n_clicks"), Input("submit-val-tic", "n_clicks")], state=[
+     State(component_id='my-input-name', component_property='value'),
+     State(component_id='my-input-tic', component_property='value')])
+def update_output(n_clicks_name, n_clicks_tic, input_value_name,
                   input_value_tic):
 
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered][0]
